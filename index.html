@@ -1,24 +1,762 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>gray-video-portal</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
-
-    <meta property="og:title" content="gray-video-portal" />
-    <meta property="og:description" content="Lovable Generated Project" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <title>Video Processing Platform</title>
+    <meta name="description" content="Plataforma de Processamento de Vídeos" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              'inter': ['Inter', 'system-ui', 'sans-serif'],
+            },
+            colors: {
+              gray: {
+                50: '#f9fafb',
+                100: '#f3f4f6',
+                200: '#e5e7eb',
+                300: '#d1d5db',
+                400: '#9ca3af',
+                500: '#6b7280',
+                600: '#4b5563',
+                700: '#374151',
+                800: '#1f2937',
+                900: '#111827',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        font-family: 'Inter', system-ui, sans-serif;
+      }
+      
+      .loading-spinner {
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #6b7280;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      .fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      .slide-in {
+        animation: slideIn 0.4s ease-out;
+      }
+      
+      @keyframes slideIn {
+        from { opacity: 0; transform: translateX(-20px); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+    </style>
   </head>
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+  <body class="bg-gray-50 min-h-screen">
+    <div id="app">
+      <!-- Loading Screen -->
+      <div id="loadingScreen" class="fixed inset-0 bg-gray-50 flex items-center justify-center z-50">
+        <div class="text-center">
+          <div class="loading-spinner mx-auto mb-4"></div>
+          <p class="text-gray-600">Carregando...</p>
+        </div>
+      </div>
+
+      <!-- Navigation Bar -->
+      <nav id="navbar" class="bg-white shadow-sm border-b border-gray-200 hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between h-16">
+            <div class="flex items-center">
+              <h1 class="text-xl font-semibold text-gray-900">Video Platform</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+              <button id="uploadBtn" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                Upload
+              </button>
+              <button id="videosBtn" class="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg transition-colors duration-200">
+                Meus Vídeos
+              </button>
+              <button id="logoutBtn" class="text-gray-500 hover:text-red-600 px-4 py-2 rounded-lg transition-colors duration-200">
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Main Content -->
+      <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        
+        <!-- Login/Register Page -->
+        <div id="authPage" class="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
+          <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">Video Platform</h2>
+            <p class="text-gray-600">Faça login ou registre-se para continuar</p>
+          </div>
+          
+          <!-- Auth Toggle -->
+          <div class="flex bg-gray-100 rounded-lg p-1 mb-6">
+            <button id="loginTab" class="flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors duration-200 bg-white text-gray-900 shadow-sm">
+              Login
+            </button>
+            <button id="registerTab" class="flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors duration-200 text-gray-600 hover:text-gray-900">
+              Registro
+            </button>
+          </div>
+
+          <!-- Login Form -->
+          <form id="loginForm" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+              <input type="text" id="loginUsername" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+              <input type="password" id="loginPassword" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent">
+            </div>
+            <button type="submit" id="loginSubmit" class="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center">
+              <span>Entrar</span>
+            </button>
+          </form>
+
+          <!-- Register Form -->
+          <form id="registerForm" class="space-y-4 hidden">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+              <input type="text" id="registerUsername" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+              <input type="email" id="registerEmail" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+              <input type="password" id="registerPassword" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent">
+            </div>
+            <button type="submit" id="registerSubmit" class="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center">
+              <span>Registrar</span>
+            </button>
+          </form>
+
+          <!-- Alert Messages -->
+          <div id="authAlert" class="mt-4 hidden"></div>
+        </div>
+
+        <!-- Upload Page -->
+        <div id="uploadPage" class="hidden">
+          <div class="max-w-2xl mx-auto">
+            <div class="bg-white rounded-xl shadow-lg p-8">
+              <h2 class="text-2xl font-bold text-gray-900 mb-6">Upload de Vídeo</h2>
+              
+              <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors duration-200" id="dropZone">
+                <div class="space-y-4">
+                  <div class="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="text-lg font-medium text-gray-900">Selecione um arquivo de vídeo</p>
+                    <p class="text-gray-500">ou arraste e solte aqui</p>
+                  </div>
+                  <input type="file" id="videoFile" accept="video/*" class="hidden">
+                  <button type="button" id="selectFileBtn" class="bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors duration-200">
+                    Escolher Arquivo
+                  </button>
+                </div>
+              </div>
+
+              <div id="fileSelected" class="mt-6 hidden">
+                <div class="bg-gray-50 rounded-lg p-4">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                      <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                      </div>
+                      <div>
+                        <p id="fileName" class="font-medium text-gray-900"></p>
+                        <p id="fileSize" class="text-sm text-gray-500"></p>
+                      </div>
+                    </div>
+                    <button id="removeFile" class="text-gray-400 hover:text-red-500 transition-colors duration-200">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                
+                <button id="uploadBtn2" class="w-full mt-4 bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center">
+                  <span>Fazer Upload</span>
+                </button>
+              </div>
+
+              <!-- Upload Progress -->
+              <div id="uploadProgress" class="mt-6 hidden">
+                <div class="bg-gray-50 rounded-lg p-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-700">Fazendo upload...</span>
+                    <span id="progressPercent" class="text-sm text-gray-500">0%</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="progressBar" class="bg-gray-800 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Upload Alert -->
+              <div id="uploadAlert" class="mt-4 hidden"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Videos Page -->
+        <div id="videosPage" class="hidden">
+          <div class="bg-white rounded-xl shadow-lg">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <h2 class="text-2xl font-bold text-gray-900">Meus Vídeos</h2>
+              <button id="refreshVideos" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                <span>Atualizar</span>
+              </button>
+            </div>
+            
+            <div id="videosLoading" class="p-8 text-center">
+              <div class="loading-spinner mx-auto mb-4"></div>
+              <p class="text-gray-600">Carregando vídeos...</p>
+            </div>
+
+            <div id="videosContent" class="hidden">
+              <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Arquivo</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Upload</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Atualização</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="videosTableBody" class="bg-white divide-y divide-gray-200">
+                  </tbody>
+                </table>
+              </div>
+
+              <div id="noVideos" class="p-8 text-center hidden">
+                <div class="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                  </svg>
+                </div>
+                <p class="text-gray-500 mb-4">Nenhum vídeo encontrado</p>
+                <button onclick="showUploadPage()" class="bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors duration-200">
+                  Fazer primeiro upload
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+
+    <script>
+      // Global variables
+      let currentPage = 'auth';
+      let videosRefreshInterval;
+      
+      // DOM Elements
+      const elements = {
+        loadingScreen: document.getElementById('loadingScreen'),
+        navbar: document.getElementById('navbar'),
+        authPage: document.getElementById('authPage'),
+        uploadPage: document.getElementById('uploadPage'),
+        videosPage: document.getElementById('videosPage'),
+        loginTab: document.getElementById('loginTab'),
+        registerTab: document.getElementById('registerTab'),
+        loginForm: document.getElementById('loginForm'),
+        registerForm: document.getElementById('registerForm'),
+        authAlert: document.getElementById('authAlert'),
+        uploadAlert: document.getElementById('uploadAlert'),
+        videoFile: document.getElementById('videoFile'),
+        selectFileBtn: document.getElementById('selectFileBtn'),
+        fileSelected: document.getElementById('fileSelected'),
+        fileName: document.getElementById('fileName'),
+        fileSize: document.getElementById('fileSize'),
+        removeFile: document.getElementById('removeFile'),
+        uploadBtn2: document.getElementById('uploadBtn2'),
+        uploadProgress: document.getElementById('uploadProgress'),
+        progressBar: document.getElementById('progressBar'),
+        progressPercent: document.getElementById('progressPercent'),
+        dropZone: document.getElementById('dropZone'),
+        videosLoading: document.getElementById('videosLoading'),
+        videosContent: document.getElementById('videosContent'),
+        videosTableBody: document.getElementById('videosTableBody'),
+        noVideos: document.getElementById('noVideos'),
+        uploadBtn: document.getElementById('uploadBtn'),
+        videosBtn: document.getElementById('videosBtn'),
+        logoutBtn: document.getElementById('logoutBtn'),
+        refreshVideos: document.getElementById('refreshVideos')
+      };
+
+      // Utility functions
+      function getToken() {
+        return localStorage.getItem('jwtToken');
+      }
+
+      function setToken(token) {
+        localStorage.setItem('jwtToken', token);
+      }
+
+      function removeToken() {
+        localStorage.removeItem('jwtToken');
+      }
+
+      function showAlert(elementId, message, type = 'error') {
+        const alertElement = document.getElementById(elementId);
+        const bgColor = type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800';
+        
+        alertElement.innerHTML = `
+          <div class="${bgColor} border rounded-lg p-4">
+            <div class="flex items-center">
+              <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                ${type === 'success' 
+                  ? '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>'
+                  : '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>'
+                }
+              </svg>
+              <span>${message}</span>
+            </div>
+          </div>
+        `;
+        alertElement.classList.remove('hidden');
+        
+        setTimeout(() => {
+          alertElement.classList.add('hidden');
+        }, 5000);
+      }
+
+      function formatBytes(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+
+      function formatDate(dateString) {
+        return new Date(dateString).toLocaleString('pt-BR');
+      }
+
+      function getStatusBadge(status) {
+        const statusConfig = {
+          'PENDING': { class: 'bg-yellow-100 text-yellow-800', text: 'Pendente' },
+          'PROCESSING': { class: 'bg-blue-100 text-blue-800', text: 'Processando' },
+          'COMPLETED': { class: 'bg-green-100 text-green-800', text: 'Concluído' },
+          'FAILED': { class: 'bg-red-100 text-red-800', text: 'Falhou' }
+        };
+        
+        const config = statusConfig[status] || { class: 'bg-gray-100 text-gray-800', text: status };
+        return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.class}">${config.text}</span>`;
+      }
+
+      // Page navigation
+      function showPage(page) {
+        elements.authPage.classList.add('hidden');
+        elements.uploadPage.classList.add('hidden');
+        elements.videosPage.classList.add('hidden');
+        
+        currentPage = page;
+        
+        if (page === 'auth') {
+          elements.authPage.classList.remove('hidden');
+          elements.navbar.classList.add('hidden');
+          clearInterval(videosRefreshInterval);
+        } else {
+          elements.navbar.classList.remove('hidden');
+          if (page === 'upload') {
+            elements.uploadPage.classList.remove('hidden');
+            clearInterval(videosRefreshInterval);
+          } else if (page === 'videos') {
+            elements.videosPage.classList.remove('hidden');
+            loadVideos();
+            startVideosRefresh();
+          }
+        }
+      }
+
+      function showUploadPage() {
+        showPage('upload');
+      }
+
+      function showVideosPage() {
+        showPage('videos');
+      }
+
+      // Authentication
+      async function login(username, password) {
+        try {
+          const response = await fetch('http://localhost:5000/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password })
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.token) {
+            setToken(data.token);
+            showAlert('authAlert', 'Login realizado com sucesso!', 'success');
+            setTimeout(() => showPage('upload'), 1000);
+          } else {
+            showAlert('authAlert', data.message || 'Erro ao fazer login');
+          }
+        } catch (error) {
+          console.error('Login error:', error);
+          showAlert('authAlert', 'Erro de conexão. Verifique se o servidor está rodando.');
+        }
+      }
+
+      async function register(username, email, password) {
+        try {
+          const response = await fetch('http://localhost:5000/register', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, email, password })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            showAlert('authAlert', 'Registro realizado com sucesso! Faça login para continuar.', 'success');
+            setTimeout(() => {
+              elements.loginTab.click();
+            }, 1500);
+          } else {
+            showAlert('authAlert', data.message || 'Erro ao registrar');
+          }
+        } catch (error) {
+          console.error('Register error:', error);
+          showAlert('authAlert', 'Erro de conexão. Verifique se o servidor está rodando.');
+        }
+      }
+
+      function logout() {
+        removeToken();
+        showPage('auth');
+        showAlert('authAlert', 'Logout realizado com sucesso!', 'success');
+      }
+
+      // File upload
+      async function uploadVideo(file) {
+        const token = getToken();
+        if (!token) {
+          showAlert('uploadAlert', 'Token não encontrado. Faça login novamente.');
+          showPage('auth');
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+          elements.uploadProgress.classList.remove('hidden');
+          elements.uploadBtn2.disabled = true;
+
+          const response = await fetch('http://localhost:5001/upload', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+            body: formData
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            showAlert('uploadAlert', 'Upload realizado com sucesso!', 'success');
+            resetFileUpload();
+            setTimeout(() => showPage('videos'), 1500);
+          } else {
+            if (response.status === 401) {
+              removeToken();
+              showPage('auth');
+              showAlert('authAlert', 'Sessão expirada. Faça login novamente.');
+            } else {
+              showAlert('uploadAlert', data.message || 'Erro no upload');
+            }
+          }
+        } catch (error) {
+          console.error('Upload error:', error);
+          showAlert('uploadAlert', 'Erro de conexão. Verifique se o servidor está rodando.');
+        } finally {
+          elements.uploadProgress.classList.add('hidden');
+          elements.uploadBtn2.disabled = false;
+        }
+      }
+
+      function resetFileUpload() {
+        elements.videoFile.value = '';
+        elements.fileSelected.classList.add('hidden');
+        elements.uploadProgress.classList.add('hidden');
+        elements.progressBar.style.width = '0%';
+        elements.progressPercent.textContent = '0%';
+      }
+
+      // Videos management
+      async function loadVideos() {
+        const token = getToken();
+        if (!token) {
+          showAlert('uploadAlert', 'Token não encontrado. Faça login novamente.');
+          showPage('auth');
+          return;
+        }
+
+        elements.videosLoading.classList.remove('hidden');
+        elements.videosContent.classList.add('hidden');
+
+        try {
+          const response = await fetch('http://localhost:5001/videos/status', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            const videos = await response.json();
+            displayVideos(videos);
+          } else {
+            if (response.status === 401) {
+              removeToken();
+              showPage('auth');
+              showAlert('authAlert', 'Sessão expirada. Faça login novamente.');
+            } else {
+              console.error('Error loading videos:', response.statusText);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading videos:', error);
+        } finally {
+          elements.videosLoading.classList.add('hidden');
+          elements.videosContent.classList.remove('hidden');
+        }
+      }
+
+      function displayVideos(videos) {
+        if (!Array.isArray(videos) || videos.length === 0) {
+          elements.noVideos.classList.remove('hidden');
+          elements.videosTableBody.innerHTML = '';
+          return;
+        }
+
+        elements.noVideos.classList.add('hidden');
+        
+        elements.videosTableBody.innerHTML = videos.map(video => `
+          <tr class="hover:bg-gray-50 transition-colors duration-200">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${video.id}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900 font-medium">${video.original_filename || 'N/A'}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">${getStatusBadge(video.status)}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatDate(video.created_at)}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatDate(video.updated_at)}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              ${video.status === 'COMPLETED' ? 
+                `<button onclick="downloadVideo(${video.id})" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm transition-colors duration-200">
+                  Download
+                </button>` : 
+                '<span class="text-gray-400">-</span>'
+              }
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      async function downloadVideo(videoId) {
+        const token = getToken();
+        if (!token) {
+          showAlert('uploadAlert', 'Token não encontrado. Faça login novamente.');
+          showPage('auth');
+          return;
+        }
+
+        try {
+          const response = await fetch(`http://localhost:5001/videos/${videoId}/download`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `video_${videoId}.zip`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+          } else {
+            if (response.status === 401) {
+              removeToken();
+              showPage('auth');
+              showAlert('authAlert', 'Sessão expirada. Faça login novamente.');
+            } else {
+              console.error('Download error:', response.statusText);
+            }
+          }
+        } catch (error) {
+          console.error('Download error:', error);
+        }
+      }
+
+      function startVideosRefresh() {
+        clearInterval(videosRefreshInterval);
+        videosRefreshInterval = setInterval(() => {
+          if (currentPage === 'videos') {
+            loadVideos();
+          }
+        }, 10000); // Refresh every 10 seconds
+      }
+
+      // Event listeners
+      document.addEventListener('DOMContentLoaded', function() {
+        // Hide loading screen
+        setTimeout(() => {
+          elements.loadingScreen.classList.add('hidden');
+          
+          // Check if user is already logged in
+          if (getToken()) {
+            showPage('upload');
+          } else {
+            showPage('auth');
+          }
+        }, 1000);
+
+        // Auth tab switching
+        elements.loginTab.addEventListener('click', function() {
+          elements.loginTab.classList.add('bg-white', 'text-gray-900', 'shadow-sm');
+          elements.loginTab.classList.remove('text-gray-600');
+          elements.registerTab.classList.remove('bg-white', 'text-gray-900', 'shadow-sm');
+          elements.registerTab.classList.add('text-gray-600');
+          
+          elements.loginForm.classList.remove('hidden');
+          elements.registerForm.classList.add('hidden');
+        });
+
+        elements.registerTab.addEventListener('click', function() {
+          elements.registerTab.classList.add('bg-white', 'text-gray-900', 'shadow-sm');
+          elements.registerTab.classList.remove('text-gray-600');
+          elements.loginTab.classList.remove('bg-white', 'text-gray-900', 'shadow-sm');
+          elements.loginTab.classList.add('text-gray-600');
+          
+          elements.registerForm.classList.remove('hidden');
+          elements.loginForm.classList.add('hidden');
+        });
+
+        // Form submissions
+        elements.loginForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          const username = document.getElementById('loginUsername').value;
+          const password = document.getElementById('loginPassword').value;
+          login(username, password);
+        });
+
+        elements.registerForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          const username = document.getElementById('registerUsername').value;
+          const email = document.getElementById('registerEmail').value;
+          const password = document.getElementById('registerPassword').value;
+          register(username, email, password);
+        });
+
+        // Navigation
+        elements.uploadBtn.addEventListener('click', () => showPage('upload'));
+        elements.videosBtn.addEventListener('click', () => showPage('videos'));
+        elements.logoutBtn.addEventListener('click', logout);
+        elements.refreshVideos.addEventListener('click', loadVideos);
+
+        // File upload
+        elements.selectFileBtn.addEventListener('click', () => elements.videoFile.click());
+        
+        elements.videoFile.addEventListener('change', function(e) {
+          const file = e.target.files[0];
+          if (file) {
+            elements.fileName.textContent = file.name;
+            elements.fileSize.textContent = formatBytes(file.size);
+            elements.fileSelected.classList.remove('hidden');
+          }
+        });
+
+        elements.removeFile.addEventListener('click', resetFileUpload);
+        
+        elements.uploadBtn2.addEventListener('click', function() {
+          const file = elements.videoFile.files[0];
+          if (file) {
+            uploadVideo(file);
+          }
+        });
+
+        // Drag and drop
+        elements.dropZone.addEventListener('dragover', function(e) {
+          e.preventDefault();
+          elements.dropZone.classList.add('border-gray-400');
+        });
+
+        elements.dropZone.addEventListener('dragleave', function(e) {
+          e.preventDefault();
+          elements.dropZone.classList.remove('border-gray-400');
+        });
+
+        elements.dropZone.addEventListener('drop', function(e) {
+          e.preventDefault();
+          elements.dropZone.classList.remove('border-gray-400');
+          
+          const files = e.dataTransfer.files;
+          if (files.length > 0 && files[0].type.startsWith('video/')) {
+            elements.videoFile.files = files;
+            elements.videoFile.dispatchEvent(new Event('change'));
+          }
+        });
+      });
+
+      // Global functions for onclick handlers
+      window.showUploadPage = showUploadPage;
+      window.downloadVideo = downloadVideo;
+    </script>
   </body>
 </html>
