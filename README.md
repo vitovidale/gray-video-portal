@@ -1,4 +1,5 @@
 # Video Upload Portal
+<img width="885" height="914" alt="image" src="https://github.com/user-attachments/assets/621f32b1-56bc-4824-a8c8-3c9a2a876240" />
 
 ## Visão Geral
 
