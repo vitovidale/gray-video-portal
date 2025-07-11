@@ -1,0 +1,30 @@
+name: CI - Frontend Web App
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x' # Use uma versão LTS compatível com o seu package.json
+
+      - name: Install dependencies
+        run: npm install # Instala as dependências do package.json
+
+      - name: Build Frontend
+      
+        run: npm run build # Constrói os assets para produção
+
